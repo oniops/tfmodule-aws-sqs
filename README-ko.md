@@ -159,7 +159,7 @@ module "ctx" {
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
-  sqs_name = "my-queue"  # 모듈이 자동으로 '.fifo' 접미사를 추가합니다
+  sqs_name = "my-queue"  # 모듈이 자동으로 '-sqs.fifo' 접미사를 추가합니다
 
   fifo_queue                  = true
   content_based_deduplication = true
@@ -292,7 +292,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 <tbody>
     <tr>
         <td>sqs_name</td>
-        <td>큐의 이름입니다. 생략하면 Context 네이밍 규칙에 따라 이름이 결정됩니다. FIFO 큐의 경우 모듈이 자동으로 <code>.fifo</code> 접미사를 추가합니다. <code>sqs_fullname</code>이 설정된 경우 무시됩니다.</td>
+        <td>큐의 이름입니다. 모듈이 <code>-sqs</code>를 붙여 최종 큐 이름을 생성합니다 (예: <code>my-queue-sqs</code>). FIFO 큐의 경우 <code>-sqs.fifo</code>가 붙습니다. <code>sqs_fullname</code>이 설정된 경우 무시됩니다.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -300,7 +300,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>sqs_fullname</td>
-        <td>큐의 전체 이름입니다. 설정하면 해당 값을 그대로 사용하며 <code>sqs_name</code>과 Context 네이밍 규칙에서 파생된 이름을 덮어씁니다. 모듈의 네이밍 정책 외 커스텀 형식이 필요할 때 유용합니다. FIFO 큐의 경우 <code>.fifo</code> 접미사를 직접 포함해야 합니다.</td>
+        <td>큐의 전체 이름입니다. 설정하면 해당 값을 그대로 사용하며 <code>sqs_name</code>에서 파생된 이름을 덮어씁니다. 커스텀 형식이 필요할 때 유용합니다. FIFO 큐의 경우 <code>.fifo</code> 접미사를 직접 포함해야 합니다.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -431,7 +431,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 <tbody>
     <tr>
         <td>fifo_queue</td>
-        <td>FIFO 큐를 지정하는 Boolean입니다. FIFO 큐는 메시지 그룹 내에서 정확히 한 번 처리와 메시지 순서를 보장합니다. <code>.fifo</code> 접미사는 자동으로 추가됩니다.</td>
+        <td>FIFO 큐를 지정하는 Boolean입니다. FIFO 큐는 메시지 그룹 내에서 정확히 한 번 처리와 메시지 순서를 보장합니다. <code>-sqs.fifo</code> 접미사는 자동으로 추가됩니다.</td>
         <td>bool</td>
         <td>false</td>
         <td>no</td>
@@ -513,7 +513,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     <tr>
         <td>sqs_policy</td>
         <td><code>sqs_access_services</code>에서 생성된 구문과 함께 SQS 큐 정책에 병합할 추가 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
-        <td>list(any)</td>
+        <td>any</td>
         <td>[]</td>
         <td>no</td>
         <td><pre>
@@ -555,7 +555,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>dlq_name</td>
-        <td>Dead Letter Queue의 이름입니다. 생략하면 메인 큐 이름에 <code>-dlq</code> 접미사가 붙어 이름이 결정됩니다. FIFO 큐의 경우 <code>.fifo</code> 접미사가 자동으로 추가됩니다. <code>dlq_fullname</code>이 설정된 경우 무시됩니다.</td>
+        <td>Dead Letter Queue의 이름입니다. 생략하면 <code>sqs_name</code>에 <code>-dlq-sqs</code> 접미사가 붙어 이름이 결정됩니다 (예: <code>my-queue-dlq-sqs</code>). FIFO 큐의 경우 <code>-dlq-sqs.fifo</code>가 붙습니다. <code>dlq_fullname</code>이 설정된 경우 무시됩니다.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -563,7 +563,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>dlq_fullname</td>
-        <td>Dead Letter Queue의 전체 이름입니다. 설정하면 해당 값을 그대로 사용하며 <code>dlq_name</code>과 Context 네이밍 규칙에서 파생된 이름을 덮어씁니다. FIFO 큐의 경우 <code>.fifo</code> 접미사를 직접 포함해야 합니다.</td>
+        <td>Dead Letter Queue의 전체 이름입니다. 설정하면 해당 값을 그대로 사용하며 <code>dlq_name</code>에서 파생된 이름을 덮어씁니다. FIFO 큐의 경우 <code>.fifo</code> 접미사를 직접 포함해야 합니다.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -665,7 +665,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     <tr>
         <td>dlq_policy</td>
         <td><code>dlq_access_services</code>에서 생성된 구문과 함께 Dead Letter Queue 정책에 병합할 추가 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
-        <td>list(any)</td>
+        <td>any</td>
         <td>[]</td>
         <td>no</td>
         <td><pre>
@@ -712,52 +712,40 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 </thead>
 <tbody>
     <tr>
-        <td>queue_id</td>
-        <td>생성된 Amazon SQS 큐의 URL입니다. <code>queue_url</code>과 동일합니다.</td>
-        <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue"</td>
-    </tr>
-    <tr>
         <td>queue_arn</td>
         <td>SQS 큐의 ARN입니다.</td>
         <td>string</td>
-        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue"</td>
+        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"</td>
     </tr>
     <tr>
         <td>queue_url</td>
         <td>생성된 Amazon SQS 큐의 URL입니다.</td>
         <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue"</td>
+        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-sqs"</td>
     </tr>
     <tr>
         <td>queue_name</td>
         <td>SQS 큐의 이름입니다.</td>
         <td>string</td>
-        <td>"my-queue"</td>
-    </tr>
-    <tr>
-        <td>dead_letter_queue_id</td>
-        <td>생성된 Amazon SQS Dead Letter Queue의 URL입니다. <code>dead_letter_queue_url</code>과 동일합니다.</td>
-        <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq"</td>
+        <td>"my-queue-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_arn</td>
         <td>SQS Dead Letter Queue의 ARN입니다.</td>
         <td>string</td>
-        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-dlq"</td>
+        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-dlq-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_url</td>
         <td>생성된 Amazon SQS Dead Letter Queue의 URL입니다.</td>
         <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq"</td>
+        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_name</td>
         <td>SQS Dead Letter Queue의 이름입니다.</td>
         <td>string</td>
-        <td>"my-queue-dlq"</td>
+        <td>"my-queue-dlq-sqs"</td>
     </tr>
 </tbody>
 </table>

@@ -159,7 +159,7 @@ module "ctx" {
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
-  sqs_name = "my-queue"  # The module automatically appends '.fifo' suffix
+  sqs_name = "my-queue"  # The module automatically appends '-sqs.fifo' suffix
 
   fifo_queue                  = true
   content_based_deduplication = true
@@ -292,7 +292,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 <tbody>
     <tr>
         <td>sqs_name</td>
-        <td>Human-readable name of the queue. If omitted, the name is derived from the context naming convention. For FIFO queues, the module automatically appends the <code>.fifo</code> suffix. Ignored when <code>sqs_fullname</code> is set.</td>
+        <td>Human-readable name of the queue. The module appends <code>-sqs</code> to form the final queue name (e.g. <code>my-queue-sqs</code>). For FIFO queues, <code>-sqs.fifo</code> is appended instead. Ignored when <code>sqs_fullname</code> is set.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -300,7 +300,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     </tr>
     <tr>
         <td>sqs_fullname</td>
-        <td>Fully qualified name of the queue. When set, the value is used as-is and overrides the name derived from <code>sqs_name</code> and the context naming convention. Useful when the queue name must follow a custom format. For FIFO queues, the <code>.fifo</code> suffix must be included manually.</td>
+        <td>Fully qualified name of the queue. When set, the value is used as-is and overrides the name derived from <code>sqs_name</code>. Useful when the queue name must follow a custom format. For FIFO queues, the <code>.fifo</code> suffix must be included manually.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -431,7 +431,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 <tbody>
     <tr>
         <td>fifo_queue</td>
-        <td>Boolean designating a FIFO queue. FIFO queues guarantee exactly-once processing and preserve message order within a message group. The <code>.fifo</code> suffix is appended automatically.</td>
+        <td>Boolean designating a FIFO queue. FIFO queues guarantee exactly-once processing and preserve message order within a message group. The <code>-sqs.fifo</code> suffix is appended automatically.</td>
         <td>bool</td>
         <td>false</td>
         <td>no</td>
@@ -513,7 +513,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     <tr>
         <td>sqs_policy</td>
         <td>List of additional IAM policy statements to merge into the SQS queue policy alongside statements generated from <code>sqs_access_services</code>. Statements must have unique <code>sid</code>s.</td>
-        <td>list(any)</td>
+        <td>any</td>
         <td>[]</td>
         <td>no</td>
         <td><pre>
@@ -555,7 +555,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     </tr>
     <tr>
         <td>dlq_name</td>
-        <td>Human-readable name of the dead letter queue. If omitted, the name is derived from the main queue name with a <code>-dlq</code> suffix. For FIFO queues, the <code>.fifo</code> suffix is appended automatically. Ignored when <code>dlq_fullname</code> is set.</td>
+        <td>Human-readable name of the dead letter queue. If omitted, the name is derived from <code>sqs_name</code> with a <code>-dlq-sqs</code> suffix (e.g. <code>my-queue-dlq-sqs</code>). For FIFO queues, <code>-dlq-sqs.fifo</code> is appended instead. Ignored when <code>dlq_fullname</code> is set.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -563,7 +563,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     </tr>
     <tr>
         <td>dlq_fullname</td>
-        <td>Fully qualified name of the dead letter queue. When set, the value is used as-is and overrides the name derived from <code>dlq_name</code> and the context naming convention. For FIFO queues, the <code>.fifo</code> suffix must be included manually.</td>
+        <td>Fully qualified name of the dead letter queue. When set, the value is used as-is and overrides the name derived from <code>dlq_name</code>. For FIFO queues, the <code>.fifo</code> suffix must be included manually.</td>
         <td>string</td>
         <td>null</td>
         <td>no</td>
@@ -665,7 +665,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     <tr>
         <td>dlq_policy</td>
         <td>List of additional IAM policy statements to merge into the dead letter queue policy alongside statements generated from <code>dlq_access_services</code>. Statements must have unique <code>sid</code>s.</td>
-        <td>list(any)</td>
+        <td>any</td>
         <td>[]</td>
         <td>no</td>
         <td><pre>
@@ -712,52 +712,40 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 </thead>
 <tbody>
     <tr>
-        <td>queue_id</td>
-        <td>The URL for the created Amazon SQS queue. Same as <code>queue_url</code>.</td>
-        <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue"</td>
-    </tr>
-    <tr>
         <td>queue_arn</td>
         <td>The ARN of the SQS queue.</td>
         <td>string</td>
-        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue"</td>
+        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"</td>
     </tr>
     <tr>
         <td>queue_url</td>
         <td>The URL for the created Amazon SQS queue.</td>
         <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue"</td>
+        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-sqs"</td>
     </tr>
     <tr>
         <td>queue_name</td>
         <td>The name of the SQS queue.</td>
         <td>string</td>
-        <td>"my-queue"</td>
-    </tr>
-    <tr>
-        <td>dead_letter_queue_id</td>
-        <td>The URL for the created Amazon SQS dead letter queue. Same as <code>dead_letter_queue_url</code>.</td>
-        <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq"</td>
+        <td>"my-queue-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_arn</td>
         <td>The ARN of the SQS dead letter queue.</td>
         <td>string</td>
-        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-dlq"</td>
+        <td>"arn:aws:sqs:ap-northeast-2:111122223333:my-queue-dlq-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_url</td>
         <td>The URL for the created Amazon SQS dead letter queue.</td>
         <td>string</td>
-        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq"</td>
+        <td>"https://sqs.ap-northeast-2.amazonaws.com/111122223333/my-queue-dlq-sqs"</td>
     </tr>
     <tr>
         <td>dead_letter_queue_name</td>
         <td>The name of the SQS dead letter queue.</td>
         <td>string</td>
-        <td>"my-queue-dlq"</td>
+        <td>"my-queue-dlq-sqs"</td>
     </tr>
 </tbody>
 </table>

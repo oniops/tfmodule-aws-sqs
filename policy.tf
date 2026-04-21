@@ -62,7 +62,7 @@ locals {
         Effect    = "Allow"
         Principal = { Service = tolist(keys(local.dlq_producer_services)) }
         Action    = tolist(["sqs:SendMessage"])
-        Resource  = "111" # aws_sqs_queue.dlq[0].arn
+        Resource  = aws_sqs_queue.dlq[0].arn
         Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.dlq_producer_services))) } }
       }] : [],
       length(local.dlq_consumer_services) > 0 ? [{
@@ -75,7 +75,7 @@ locals {
           "sqs:GetQueueAttributes",
           "sqs:ChangeMessageVisibility"
         ])
-        Resource  = "111" # aws_sqs_queue.dlq[0].arn
+        Resource  = aws_sqs_queue.dlq[0].arn
         Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.dlq_consumer_services))) } }
       }] : []
     )
