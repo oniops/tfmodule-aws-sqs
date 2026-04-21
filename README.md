@@ -249,8 +249,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
   customer    = "Example Customer"
   domain      = "example.com"
   pri_domain  = "example.internal"
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>additional_tags</td>
@@ -262,8 +261,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 {
   ExpirationDate = "20260102"
   PurposeOfUse   = "PoC"
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>create</td>
@@ -507,8 +505,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
       "arn:aws:events:ap-northeast-2:111122223333:rule/other-rule"
     ]
   }
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>sqs_policy</td>
@@ -525,8 +522,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     Action    = ["sqs:*"]
     Resource  = "*"
   }
-]
-        </pre></td>
+]</pre></td>
     </tr>
 </tbody>
 </table>
@@ -651,8 +647,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
   sourceQueueArns   = [
     "arn:aws:sqs:ap-northeast-2:111122223333:source-queue"
   ]
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>create_dlq_queue_policy</td>
@@ -677,8 +672,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     Action    = ["sqs:*"]
     Resource  = "*"
   }
-]
-        </pre></td>
+]</pre></td>
     </tr>
     <tr>
         <td>dlq_access_services</td>
@@ -693,8 +687,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
     ]
   }
-}
-        </pre></td>
+}</pre></td>
     </tr>
 </tbody>
 </table>

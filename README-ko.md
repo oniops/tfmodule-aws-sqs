@@ -249,8 +249,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
   customer    = "Example Customer"
   domain      = "example.com"
   pri_domain  = "example.internal"
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>additional_tags</td>
@@ -262,8 +261,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 {
   ExpirationDate = "20260102"
   PurposeOfUse   = "PoC"
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>create</td>
@@ -507,8 +505,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
       "arn:aws:events:ap-northeast-2:111122223333:rule/other-rule"
     ]
   }
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>sqs_policy</td>
@@ -525,8 +522,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     Action    = ["sqs:*"]
     Resource  = "*"
   }
-]
-        </pre></td>
+]</pre></td>
     </tr>
 </tbody>
 </table>
@@ -640,19 +636,18 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>null</td>
         <td>no</td>
         <td><pre>
-# 모든 소스 큐 허용:
+모든 소스 큐 허용:
 {
   redrivePermission = "allowAll"
 }
 
-# 특정 소스 큐 ARN으로 제한:
+특정 소스 큐 ARN으로 제한:
 {
   redrivePermission = "byQueue"
   sourceQueueArns   = [
     "arn:aws:sqs:ap-northeast-2:111122223333:source-queue"
   ]
-}
-        </pre></td>
+}</pre></td>
     </tr>
     <tr>
         <td>create_dlq_queue_policy</td>
@@ -677,8 +672,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     Action    = ["sqs:*"]
     Resource  = "*"
   }
-]
-        </pre></td>
+]</pre></td>
     </tr>
     <tr>
         <td>dlq_access_services</td>
@@ -693,8 +687,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
     ]
   }
-}
-        </pre></td>
+}</pre></td>
     </tr>
 </tbody>
 </table>
