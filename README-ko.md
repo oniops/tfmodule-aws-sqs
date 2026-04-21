@@ -767,40 +767,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 ## AWS SQS 개요
 
 Amazon SQS(Simple Queue Service)는 마이크로서비스, 분산 시스템, 서버리스 애플리케이션의 디커플링 및 스케일링을 지원하는 완전 관리형 메시지 대기열 서비스입니다. 프로듀서와 컨슈머 사이에서 안정적인 메시지 버퍼 역할을 하며, Standard 및 FIFO 큐를 지원합니다.
-
-### 큐 유형 비교
-
-<table>
-<thead>
-<tr>
-    <th>특징</th>
-    <th>Standard Queue</th>
-    <th>FIFO Queue</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-    <td>처리량</td>
-    <td>무제한 (거의 무한대)</td>
-    <td>초당 최대 3,000 메시지 (배치) / 300 메시지 (단건)</td>
-</tr>
-<tr>
-    <td>메시지 순서</td>
-    <td>Best-effort 순서 (보장 안 됨)</td>
-    <td>메시지 그룹 내 엄격한 순서 보장</td>
-</tr>
-<tr>
-    <td>중복 처리</td>
-    <td>At-least-once (중복 가능)</td>
-    <td>Exactly-once (중복 없음)</td>
-</tr>
-<tr>
-    <td>사용 사례</td>
-    <td>높은 처리량이 필요한 비동기 작업</td>
-    <td>순서와 정확성이 중요한 금융/주문 처리</td>
-</tr>
-</tbody>
-</table>
+자세한 내용은 문서를 참고하세요 : [Amazon Simple Queue Service](https://docs.aws.amazon.com/ko_kr/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html)
 
 ### Dead Letter Queue (DLQ)
 

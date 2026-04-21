@@ -764,81 +764,48 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 
 # Appendix
 
-## AWS SQS 개요
+## AWS SQS Overview
 
-Amazon SQS(Simple Queue Service)는 마이크로서비스, 분산 시스템, 서버리스 애플리케이션의 디커플링 및 스케일링을 지원하는 완전 관리형 메시지 대기열 서비스입니다. 프로듀서와 컨슈머 사이에서 안정적인 메시지 버퍼 역할을 하며, Standard 및 FIFO 큐를 지원합니다.
-
-### 큐 유형 비교
-
-<table>
-<thead>
-<tr>
-    <th>특징</th>
-    <th>Standard Queue</th>
-    <th>FIFO Queue</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-    <td>처리량</td>
-    <td>무제한 (거의 무한대)</td>
-    <td>초당 최대 3,000 메시지 (배치) / 300 메시지 (단건)</td>
-</tr>
-<tr>
-    <td>메시지 순서</td>
-    <td>Best-effort 순서 (보장 안 됨)</td>
-    <td>메시지 그룹 내 엄격한 순서 보장</td>
-</tr>
-<tr>
-    <td>중복 처리</td>
-    <td>At-least-once (중복 가능)</td>
-    <td>Exactly-once (중복 없음)</td>
-</tr>
-<tr>
-    <td>사용 사례</td>
-    <td>높은 처리량이 필요한 비동기 작업</td>
-    <td>순서와 정확성이 중요한 금융/주문 처리</td>
-</tr>
-</tbody>
-</table>
+Amazon SQS (Simple Queue Service) is a fully managed message queuing service that supports decoupling and scaling of microservices, distributed systems, and serverless applications. It acts as a reliable message buffer between producers and consumers, and supports both Standard and FIFO queues.
+For more information : [Amazon Simple Queue Service](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html)
 
 ### Dead Letter Queue (DLQ)
 
-Dead Letter Queue는 처리에 실패한 메시지를 격리하는 특수 큐입니다. `maxReceiveCount` 횟수 이상 처리에 실패한 메시지가 자동으로 DLQ로 이동하며, 다음과 같은 이점을 제공합니다.
+A Dead Letter Queue is a special queue that isolates messages that have failed processing. Messages that fail processing more than `maxReceiveCount` times are automatically moved to the DLQ, providing the following benefits.
 
-- **장애 격리**: 처리 실패 메시지가 정상 큐에 재유입되지 않아 서비스 안정성을 유지합니다.
-- **디버깅 용이성**: 실패 원인 분석 및 재처리를 위해 메시지를 장기 보관합니다 (기본 14일).
-- **알람 연동**: DLQ 메시지 수에 대한 CloudWatch 알람을 통해 처리 실패를 즉시 감지할 수 있습니다.
+- **Failure Isolation**: Failed messages are not re-entered into the main queue, maintaining service stability.
+- **Easy Debugging**: Messages are retained for an extended period (default 14 days) for failure analysis and reprocessing.
+- **Alarm Integration**: CloudWatch alarms on DLQ message count enable immediate detection of processing failures.
 
-### 암호화 (SSE)
+### Encryption (SSE)
 
-SQS는 두 가지 서버 측 암호화(SSE) 방식을 지원합니다.
+SQS supports two server-side encryption (SSE) methods.
 
-| 방식 | 설명 | 변수 |
-|------|------|------|
-| SSE-SQS | SQS 관리형 키로 암호화. 추가 비용 없음 | `sqs_managed_sse_enabled = true` |
-| SSE-KMS | 고객 관리형 KMS 키로 암호화. 키 접근 정책 세밀 제어 가능 | `kms_master_key_id = "<key-arn>"` |
+| Method | Description | Variable |
+|--------|-------------|----------|
+| SSE-SQS | Encrypted with SQS-managed keys. No additional cost. | `sqs_managed_sse_enabled = true` |
+| SSE-KMS | Encrypted with customer-managed KMS keys. Fine-grained control over key access policies. | `kms_master_key_id = "<key-arn>"` |
 
-> **주의**: `sqs_managed_sse_enabled`와 `kms_master_key_id`는 상호 배타적입니다. KMS 키를 사용할 경우 `sqs_managed_sse_enabled = false`로 설정해야 합니다.
+> **Note**: `sqs_managed_sse_enabled` and `kms_master_key_id` are mutually exclusive. When using a KMS key, `sqs_managed_sse_enabled` must be set to `false`.
 
-### Queue Policy와 sqs_access_services
+### Queue Policy and sqs_access_services
 
-`sqs_access_services` 변수를 사용하면 AWS 서비스 프린시펄이 큐에 메시지를 발행(produce)하거나 수신(consume)할 수 있는 IAM 정책이 자동으로 생성됩니다.
+Using the `sqs_access_services` variable automatically generates IAM policies that allow AWS service principals to produce or consume messages from the queue.
 
 ```hcl
 sqs_access_services = {
-  # SNS가 메시지 발행 가능
+  # Allows SNS to produce messages
   "sns.amazonaws.com" = {
     producer_arns = ["arn:aws:sns:ap-northeast-2:111122223333:my-topic"]
   }
-  # EventBridge가 메시지 발행 가능
+  # Allows EventBridge to produce messages
   "events.amazonaws.com" = {
     producer_arns = ["arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"]
   }
 }
 ```
 
-생성되는 정책 액션:
+Generated policy actions:
 - **Producer** (`producer_arns`): `sqs:SendMessage`
 - **Consumer** (`consumer_arns`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
 
