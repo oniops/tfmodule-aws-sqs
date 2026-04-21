@@ -7,7 +7,7 @@ output "queue_arn" {
 }
 
 output "queue_url" {
-  description = "Same as `queue_id`: The URL for the created Amazon SQS queue"
+  description = "The URL for the created Amazon SQS queue"
   value       = try(aws_sqs_queue.this[0].url, null)
 }
 
@@ -25,7 +25,7 @@ output "dead_letter_queue_arn" {
 }
 
 output "dead_letter_queue_url" {
-  description = "Same as `dead_letter_queue_id`: The URL for the created Amazon SQS dead letter queue"
+  description = "The URL for the created Amazon SQS dead letter queue"
   value       = try(aws_sqs_queue.dlq[0].url, null)
 }
 
