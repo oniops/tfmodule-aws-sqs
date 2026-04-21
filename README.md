@@ -767,6 +767,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 ## AWS SQS Overview
 
 Amazon SQS (Simple Queue Service) is a fully managed message queuing service that supports decoupling and scaling of microservices, distributed systems, and serverless applications. It acts as a reliable message buffer between producers and consumers, and supports both Standard and FIFO queues.
+<br>
 For more information : [Amazon Simple Queue Service](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html)
 
 ### Dead Letter Queue (DLQ)
