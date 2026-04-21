@@ -239,8 +239,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>any</td>
         <td></td>
         <td>yes</td>
-        <td><pre>
-{
+        <td><pre>{
   project     = "demo"
   region      = "ap-northeast-2"
   environment = "Development"
@@ -257,8 +256,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>map(string)</td>
         <td>{}</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   ExpirationDate = "20260102"
   PurposeOfUse   = "PoC"
 }</pre></td>
@@ -490,8 +488,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>map(object)</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   "sns.amazonaws.com" = {
     producer_arns = [
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
@@ -513,8 +510,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>any</td>
         <td>[]</td>
         <td>no</td>
-        <td><pre>
-[
+        <td><pre>[
   {
     Sid       = "AllowRootAccountAccess"
     Effect    = "Allow"
@@ -635,8 +631,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>any</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-모든 소스 큐 허용:
+        <td><pre>모든 소스 큐 허용:
 {
   redrivePermission = "allowAll"
 }
@@ -663,8 +658,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>any</td>
         <td>[]</td>
         <td>no</td>
-        <td><pre>
-[
+        <td><pre>[
   {
     Sid       = "AllowRootAccountAccess"
     Effect    = "Allow"
@@ -680,8 +674,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>map(object)</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   "sns.amazonaws.com" = {
     producer_arns = [
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"

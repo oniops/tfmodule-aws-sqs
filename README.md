@@ -239,8 +239,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>any</td>
         <td></td>
         <td>yes</td>
-        <td><pre>
-{
+        <td><pre>{
   project     = "demo"
   region      = "ap-northeast-2"
   environment = "Development"
@@ -257,8 +256,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>map(string)</td>
         <td>{}</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   ExpirationDate = "20260102"
   PurposeOfUse   = "PoC"
 }</pre></td>
@@ -490,8 +488,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>map(object)</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   "sns.amazonaws.com" = {
     producer_arns = [
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
@@ -513,8 +510,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>any</td>
         <td>[]</td>
         <td>no</td>
-        <td><pre>
-[
+        <td><pre>[
   {
     Sid       = "AllowRootAccountAccess"
     Effect    = "Allow"
@@ -635,13 +631,12 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>any</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-# Allow any source queue to use this DLQ:
+        <td><pre>Allow any source queue to use this DLQ:
 {
   redrivePermission = "allowAll"
 }
 
-# Restrict to a specific source queue ARN:
+Restrict to a specific source queue ARN:
 {
   redrivePermission = "byQueue"
   sourceQueueArns   = [
@@ -663,8 +658,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>any</td>
         <td>[]</td>
         <td>no</td>
-        <td><pre>
-[
+        <td><pre>[
   {
     Sid       = "AllowRootAccountAccess"
     Effect    = "Allow"
@@ -680,8 +674,7 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>map(object)</td>
         <td>null</td>
         <td>no</td>
-        <td><pre>
-{
+        <td><pre>{
   "sns.amazonaws.com" = {
     producer_arns = [
       "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
