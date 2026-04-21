@@ -635,7 +635,6 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 {
   redrivePermission = "allowAll"
 }
-
 특정 소스 큐 ARN으로 제한:
 {
   redrivePermission = "byQueue"

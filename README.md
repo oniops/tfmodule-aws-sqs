@@ -635,7 +635,6 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 {
   redrivePermission = "allowAll"
 }
-
 Restrict to a specific source queue ARN:
 {
   redrivePermission = "byQueue"
