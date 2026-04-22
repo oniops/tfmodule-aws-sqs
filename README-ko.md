@@ -73,9 +73,9 @@ module "sqs" {
 
 <br>
 
-### 예제 3 : SNS / EventBridge 연동 Standard SQS 큐
+### 예제 3 : AWS 서비스 통합 Standard SQS 큐
 
-`sqs_access_services`를 사용하여 SNS, EventBridge 등 AWS 서비스가 큐에 메시지를 발행하거나 수신할 수 있도록 허용하는 방법을 설명합니다.
+`sqs_policy`를 사용하여 SNS, EventBridge 등 AWS 서비스가 큐에 메시지를 발행할 수 있도록 허용하는 방법을 설명합니다. 특정 소스 리소스로 접근을 제한하려면 `aws:SourceArn` Condition 사용을 권장합니다.
 
 ```hcl
 module "sqs" {
@@ -83,24 +83,36 @@ module "sqs" {
   context  = module.ctx.context
   sqs_name = "my-queue"
 
-  sqs_access_services = {
-    producer = {
-      "my-topic" = {
-        service = "sns.amazonaws.com"
-        arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+  sqs_policy = [
+    {
+      Sid    = "AllowSNSPublish"
+      Effect = "Allow"
+      Principal = {
+        Service = "sns.amazonaws.com"
       }
-      "my-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+      Action    = ["sqs:SendMessage"]
+      Resource  = "arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+        }
+      }
+    },
+    {
+      Sid    = "AllowEventBridgePublish"
+      Effect = "Allow"
+      Principal = {
+        Service = "events.amazonaws.com"
+      }
+      Action    = ["sqs:SendMessage"]
+      Resource  = "arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+        }
       }
     }
-    consumer = {
-      "my-consumer-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-consumer-rule"
-      }
-    }
-  }
+  ]
 }
 ```
 
@@ -454,29 +466,8 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>false</td>
     </tr>
     <tr>
-        <td>sqs_access_services</td>
-        <td>SQS 큐 액세스 구성입니다. 프로듀서 및/또는 컨슈머 액세스를 AWS 서비스 프린시펄과 리소스 ARN 쌍의 이름 있는 맵으로 정의합니다.</td>
-        <td>object</td>
-        <td>null</td>
-        <td>no</td>
-        <td><pre>{
-  producer = {
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-  }
-  consumer = {
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}</pre></td>
-    </tr>
-    <tr>
         <td>sqs_policy</td>
-        <td><code>sqs_access_services</code>에서 생성된 구문과 함께 SQS 큐 정책에 병합할 추가 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
+        <td>SQS 큐 정책에 사용할 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
         <td>any</td>
         <td>[]</td>
         <td>no</td>
@@ -623,7 +614,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>dlq_policy</td>
-        <td><code>dlq_access_services</code>에서 생성된 구문과 함께 Dead Letter Queue 정책에 병합할 추가 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
+        <td>Dead Letter Queue 정책에 사용할 IAM 정책 구문 목록입니다. 구문에는 고유한 <code>sid</code>가 있어야 합니다.</td>
         <td>any</td>
         <td>[]</td>
         <td>no</td>
@@ -636,27 +627,6 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     Resource  = "*"
   }
 ]</pre></td>
-    </tr>
-    <tr>
-        <td>dlq_access_services</td>
-        <td>Dead Letter Queue 액세스 구성입니다. 프로듀서 및/또는 컨슈머 액세스를 AWS 서비스 프린시펄과 리소스 ARN 쌍의 이름 있는 맵으로 정의합니다.</td>
-        <td>object</td>
-        <td>null</td>
-        <td>no</td>
-        <td><pre>{
-  producer = {
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-  }
-  consumer = {
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}</pre></td>
     </tr>
 </tbody>
 </table>
@@ -738,31 +708,6 @@ SQS는 두 가지 서버 측 암호화(SSE) 방식을 지원합니다.
 | SSE-KMS | 고객 관리형 KMS 키로 암호화. 키 접근 정책 세밀 제어 가능 | `kms_master_key_id = "<key-arn>"` |
 
 > **주의**: `sqs_managed_sse_enabled`와 `kms_master_key_id`는 상호 배타적입니다. KMS 키를 사용할 경우 `sqs_managed_sse_enabled = false`로 설정해야 합니다.
-
-### Queue Policy와 sqs_access_services
-
-`sqs_access_services` 변수를 사용하면 AWS 서비스 프린시펄이 큐에 메시지를 발행(produce)하거나 수신(consume)할 수 있는 IAM 정책이 자동으로 생성됩니다.
-
-```hcl
-sqs_access_services = {
-  producer = {
-    # SNS가 메시지 발행 가능
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-    # EventBridge가 메시지 발행 가능
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}
-```
-
-생성되는 정책 액션:
-- **Producer** (`producer`): `sqs:SendMessage`
-- **Consumer** (`consumer`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
 
 # 라이선스
 

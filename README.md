@@ -73,9 +73,9 @@ module "sqs" {
 
 <br>
 
-### Example 3 : Standard SQS Queue with SNS / EventBridge Integration
+### Example 3 : Standard SQS Queue with AWS Service Integration
 
-This chapter explains how to allow AWS services (e.g. SNS, EventBridge) to produce or consume messages from the queue using `sqs_access_services`.
+This chapter explains how to allow AWS services (e.g. SNS, EventBridge) to send messages to the queue using `sqs_policy`. A `Condition` with `aws:SourceArn` is recommended to restrict access to specific source resources.
 
 ```hcl
 module "sqs" {
@@ -83,24 +83,36 @@ module "sqs" {
   context  = module.ctx.context
   sqs_name = "my-queue"
 
-  sqs_access_services = {
-    producer = {
-      "my-topic" = {
-        service = "sns.amazonaws.com"
-        arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+  sqs_policy = [
+    {
+      Sid    = "AllowSNSPublish"
+      Effect = "Allow"
+      Principal = {
+        Service = "sns.amazonaws.com"
       }
-      "my-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+      Action    = ["sqs:SendMessage"]
+      Resource  = "arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+        }
+      }
+    },
+    {
+      Sid    = "AllowEventBridgePublish"
+      Effect = "Allow"
+      Principal = {
+        Service = "events.amazonaws.com"
+      }
+      Action    = ["sqs:SendMessage"]
+      Resource  = "arn:aws:sqs:ap-northeast-2:111122223333:my-queue-sqs"
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+        }
       }
     }
-    consumer = {
-      "my-consumer-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-consumer-rule"
-      }
-    }
-  }
+  ]
 }
 ```
 
@@ -454,29 +466,8 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>false</td>
     </tr>
     <tr>
-        <td>sqs_access_services</td>
-        <td>SQS queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.</td>
-        <td>object</td>
-        <td>null</td>
-        <td>no</td>
-        <td><pre>{
-  producer = {
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-  }
-  consumer = {
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}</pre></td>
-    </tr>
-    <tr>
         <td>sqs_policy</td>
-        <td>List of additional IAM policy statements to merge into the SQS queue policy alongside statements generated from <code>sqs_access_services</code>. Statements must have unique <code>sid</code>s.</td>
+        <td>List of IAM policy statements for the SQS queue policy. Statements must have unique <code>sid</code>s.</td>
         <td>any</td>
         <td>[]</td>
         <td>no</td>
@@ -623,7 +614,7 @@ Restrict to a specific source queue ARN:
     </tr>
     <tr>
         <td>dlq_policy</td>
-        <td>List of additional IAM policy statements to merge into the dead letter queue policy alongside statements generated from <code>dlq_access_services</code>. Statements must have unique <code>sid</code>s.</td>
+        <td>List of IAM policy statements for the dead letter queue policy. Statements must have unique <code>sid</code>s.</td>
         <td>any</td>
         <td>[]</td>
         <td>no</td>
@@ -636,27 +627,6 @@ Restrict to a specific source queue ARN:
     Resource  = "*"
   }
 ]</pre></td>
-    </tr>
-    <tr>
-        <td>dlq_access_services</td>
-        <td>Dead Letter Queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.</td>
-        <td>object</td>
-        <td>null</td>
-        <td>no</td>
-        <td><pre>{
-  producer = {
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-  }
-  consumer = {
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}</pre></td>
     </tr>
 </tbody>
 </table>
@@ -738,31 +708,6 @@ SQS supports two server-side encryption (SSE) methods.
 | SSE-KMS | Encrypted with customer-managed KMS keys. Fine-grained control over key access policies. | `kms_master_key_id = "<key-arn>"` |
 
 > **Note**: `sqs_managed_sse_enabled` and `kms_master_key_id` are mutually exclusive. When using a KMS key, `sqs_managed_sse_enabled` must be set to `false`.
-
-### Queue Policy and sqs_access_services
-
-Using the `sqs_access_services` variable automatically generates IAM policies that allow AWS service principals to produce or consume messages from the queue.
-
-```hcl
-sqs_access_services = {
-  producer = {
-    # Allows SNS to produce messages
-    "my-topic" = {
-      service = "sns.amazonaws.com"
-      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    }
-    # Allows EventBridge to produce messages
-    "my-rule" = {
-      service = "events.amazonaws.com"
-      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    }
-  }
-}
-```
-
-Generated policy actions:
-- **Producer** (`producer`): `sqs:SendMessage`
-- **Consumer** (`consumer`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
 
 # LICENSE
 

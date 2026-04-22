@@ -1,76 +1,16 @@
 locals {
-  create_queue_policy = var.create && var.create_queue_policy && (length(var.sqs_policy) > 0 || var.sqs_access_services != null)
-  producer_services = local.create_queue_policy && var.sqs_access_services != null ? {
-    for _k, e in coalesce(var.sqs_access_services.producer, {}) : e.service => e.arn...
-  } : {}
-
-  consumer_services = local.create_queue_policy && var.sqs_access_services != null ? {
-    for _k, e in coalesce(var.sqs_access_services.consumer, {}) : e.service => e.arn...
-  } : {}
+  create_queue_policy = var.create && var.create_queue_policy && length(var.sqs_policy) > 0
 
   sqs_policy = local.create_queue_policy ? {
-    Version = "2012-10-17",
-    Statement = concat(
-      var.sqs_policy,
-      length(local.producer_services) > 0 ? [{
-        Sid       = "AllowProduceForServices"
-        Effect    = "Allow"
-        Principal = { Service = tolist(keys(local.producer_services)) }
-        Action    = tolist(["sqs:SendMessage"])
-        Resource  = aws_sqs_queue.this[0].arn
-        Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.producer_services))) } }
-      }] : [],
-      length(local.consumer_services) > 0 ? [{
-        Sid       = "AllowConsumeForServices"
-        Effect    = "Allow"
-        Principal = { Service = tolist(keys(local.consumer_services)) }
-        Action = tolist([
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes",
-          "sqs:ChangeMessageVisibility"
-        ])
-        Resource  = aws_sqs_queue.this[0].arn
-        Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.consumer_services))) } }
-      }] : []
-    )
+    Version   = "2012-10-17"
+    Statement = var.sqs_policy
   } : null
 
-  create_dlq_policy = var.create_dlq && var.create_dlq_policy && (length(var.dlq_policy) > 0 || var.dlq_access_services != null)
-  dlq_producer_services = local.create_dlq_policy && var.dlq_access_services != null ? {
-    for _k, e in coalesce(var.dlq_access_services.producer, {}) : e.service => e.arn...
-  } : {}
-
-  dlq_consumer_services = local.create_dlq_policy && var.dlq_access_services != null ? {
-    for _k, e in coalesce(var.dlq_access_services.consumer, {}) : e.service => e.arn...
-  } : {}
+  create_dlq_policy = var.create_dlq && var.create_dlq_policy && length(var.dlq_policy) > 0
 
   dlq_policy = local.create_dlq_policy ? {
-    Version = "2012-10-17",
-    Statement = concat(
-      var.dlq_policy,
-      length(local.dlq_producer_services) > 0 ? [{
-        Sid       = "AllowProduceForServices"
-        Effect    = "Allow"
-        Principal = { Service = tolist(keys(local.dlq_producer_services)) }
-        Action    = tolist(["sqs:SendMessage"])
-        Resource  = aws_sqs_queue.dlq[0].arn
-        Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.dlq_producer_services))) } }
-      }] : [],
-      length(local.dlq_consumer_services) > 0 ? [{
-        Sid       = "AllowConsumeForServices"
-        Effect    = "Allow"
-        Principal = { Service = tolist(keys(local.dlq_consumer_services)) }
-        Action = tolist([
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes",
-          "sqs:ChangeMessageVisibility"
-        ])
-        Resource  = aws_sqs_queue.dlq[0].arn
-        Condition = { StringEquals = { "aws:SourceArn" = tolist(flatten(values(local.dlq_consumer_services))) } }
-      }] : []
-    )
+    Version   = "2012-10-17"
+    Statement = var.dlq_policy
   } : null
 }
 
@@ -102,8 +42,4 @@ resource "aws_sqs_queue_redrive_allow_policy" "dlq" {
     { redrivePermission = "byQueue", sourceQueueArns = [aws_sqs_queue.this[0].arn] },
     coalesce(var.dlq_redrive_allow_policy, {})
   ))
-}
-
-output "dlq_policy" {
-  value = jsonencode(local.dlq_policy)
 }

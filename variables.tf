@@ -139,44 +139,11 @@ variable "create_queue_policy" {
   default     = true
 }
 
-variable "sqs_access_services" {
-  type = object({
-    producer = optional(map(object({
-      service = string
-      arn     = string
-    })))
-    consumer = optional(map(object({
-      service = string
-      arn     = string
-    })))
-  })
-  default     = null
-  description = <<EOF
-SQS queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.
-
-Example)
-  sqs_access_services = {
-    producer = {
-      "apple-topic" = {
-        service = "sns.amazonaws.com"
-        arn     = "arn:aws:sns:ap-northeast-2:123456789012:apple-topic"
-      }
-    }
-    consumer = {
-      "banana-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:123456789012:rule/banana-rule"
-      }
-    }
-  }
-EOF
-}
-
 variable "sqs_policy" {
   type        = any
   default     = []
   description = <<EOF
-List of additional IAM policy statements to merge into the SQS queue policy alongside the statements generated from `sqs_access_services`. Statements must have unique `sid`s.
+List of IAM policy statements for the SQS queue policy. Statements must have unique `sid`s.
 
 Example)
   sqs_policy = [
@@ -313,7 +280,7 @@ variable "create_dlq_policy" {
 
 variable "dlq_policy" {
   description = <<EOF
-List of additional IAM policy statements to merge into the dead letter queue policy alongside the statements generated from `dlq_access_services`. Statements must have unique `sid`s.
+List of IAM policy statements for the dead letter queue policy. Statements must have unique `sid`s.
 
 Example)
   dlq_policy = [
@@ -338,35 +305,3 @@ EOF
   default     = []
 }
 
-variable "dlq_access_services" {
-  type = object({
-    producer = optional(map(object({
-      service = string
-      arn     = string
-    })))
-    consumer = optional(map(object({
-      service = string
-      arn     = string
-    })))
-  })
-  default     = null
-  description = <<EOF
-Dead Letter Queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.
-
-Example)
-  dlq_access_services = {
-    producer = {
-      "my-topic" = {
-        service = "sns.amazonaws.com"
-        arn     = "arn:aws:sns:ap-northeast-2:123456789012:my-topic"
-      }
-    }
-    consumer = {
-      "my-rule" = {
-        service = "events.amazonaws.com"
-        arn     = "arn:aws:events:ap-northeast-2:123456789012:rule/my-rule"
-      }
-    }
-  }
-EOF
-}
