@@ -22,20 +22,6 @@ Context에 대한 자세한 내용은 [tfmodule-context](https://github.com/onio
 기본적인 Standard SQS 큐를 생성하는 방법을 설명합니다.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source                     = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context                    = module.ctx.context
@@ -56,36 +42,63 @@ output "queue_arn" {
 
 <br>
 
-### 예제 2 : SNS / EventBridge 연동 Standard SQS 큐
+### 예제 2 : 타 계정 IAM Role 접근 허용 Standard SQS 큐
+
+`sqs_policy`를 사용하여 다른 AWS 계정(`111122223333`)의 IAM Identity(Role)가 큐에 접근할 수 있도록 허용하는 방법을 설명합니다.
+
+```hcl
+module "sqs" {
+  source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
+  context  = module.ctx.context
+  sqs_name = "my-queue"
+
+  sqs_policy = [
+    {
+      Sid       = "AllowCrossAccountRoleAccess"
+      Effect    = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::111122223333:role/my-cross-account-role"
+      }
+      Action = [
+        "sqs:SendMessage",
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ]
+      Resource = "arn:aws:sqs:ap-northeast-2:444455556666:my-queue-sqs"
+    }
+  ]
+}
+```
+
+<br>
+
+### 예제 3 : SNS / EventBridge 연동 Standard SQS 큐
 
 `sqs_access_services`를 사용하여 SNS, EventBridge 등 AWS 서비스가 큐에 메시지를 발행하거나 수신할 수 있도록 허용하는 방법을 설명합니다.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
   sqs_name = "my-queue"
 
   sqs_access_services = {
-    "sns.amazonaws.com" = {
-      producer_arns = ["arn:aws:sns:ap-northeast-2:111122223333:my-topic"]
+    producer = {
+      "my-topic" = {
+        service = "sns.amazonaws.com"
+        arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+      }
+      "my-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+      }
     }
-    "events.amazonaws.com" = {
-      producer_arns = ["arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"]
+    consumer = {
+      "my-consumer-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-consumer-rule"
+      }
     }
   }
 }
@@ -93,25 +106,11 @@ module "sqs" {
 
 <br>
 
-### 예제 3 : Dead Letter Queue (DLQ) 포함 Standard SQS 큐
+### 예제 4 : Dead Letter Queue (DLQ) 포함 Standard SQS 큐
 
 Dead Letter Queue가 자동으로 프로비저닝되는 Standard SQS 큐를 생성하는 방법을 설명합니다. `maxReceiveCount` 임계값을 초과하여 처리에 실패한 메시지는 DLQ로 이동합니다.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -121,7 +120,7 @@ module "sqs" {
   create_dlq                    = true
   dlq_message_retention_seconds = 1209600  # 14일
 
-  additional_tags = {
+  tags = {
     Service = "my-service"
   }
 }
@@ -137,25 +136,11 @@ output "dlq_url" {
 
 <br>
 
-### 예제 4 : FIFO 큐
+### 예제 5 : FIFO 큐
 
 메시지 그룹 내에서 메시지 순서와 정확히 한 번 처리를 보장하는 FIFO(First-In-First-Out) 큐를 생성하는 방법을 설명합니다.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -182,25 +167,11 @@ module "sqs" {
 
 <br>
 
-### 예제 5 : KMS 암호화 큐 (SSE-KMS)
+### 예제 6 : KMS 암호화 큐 (SSE-KMS)
 
 기본 SQS 관리형 SSE 대신 고객 관리형 KMS 키를 사용하여 큐 메시지를 암호화하는 방법을 설명합니다.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -251,8 +222,8 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 }</pre></td>
     </tr>
     <tr>
-        <td>additional_tags</td>
-        <td>이 모듈에서 생성되는 리소스에 추가할 태그를 지정합니다.</td>
+        <td>tags</td>
+        <td>이 모듈에서 생성되는 리소스에 태그를 지정합니다.</td>
         <td>map(string)</td>
         <td>{}</td>
         <td>no</td>
@@ -484,23 +455,22 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>sqs_access_services</td>
-        <td>AWS 서비스 프린시펄에 대한 SQS 액세스 구성 맵입니다. 키는 서비스 프린시펄(예: <code>sns.amazonaws.com</code>)이며, 값은 메시지 발행 또는 수신이 허용되는 리소스 ARN을 정의합니다.</td>
-        <td>map(object)</td>
+        <td>SQS 큐 액세스 구성입니다. 프로듀서 및/또는 컨슈머 액세스를 AWS 서비스 프린시펄과 리소스 ARN 쌍의 이름 있는 맵으로 정의합니다.</td>
+        <td>object</td>
         <td>null</td>
         <td>no</td>
         <td><pre>{
-  "sns.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    ]
+  producer = {
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
   }
-  "events.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    ]
-    consumer_arns = [
-      "arn:aws:events:ap-northeast-2:111122223333:rule/other-rule"
-    ]
+  consumer = {
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }</pre></td>
     </tr>
@@ -644,7 +614,7 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
 }</pre></td>
     </tr>
     <tr>
-        <td>create_dlq_queue_policy</td>
+        <td>create_dlq_policy</td>
         <td>Dead Letter Queue에 대한 액세스 정책 생성 여부를 결정합니다.</td>
         <td>bool</td>
         <td>false</td>
@@ -669,15 +639,22 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
     </tr>
     <tr>
         <td>dlq_access_services</td>
-        <td>AWS 서비스 프린시펄에 대한 Dead Letter SQS 액세스 구성 맵입니다. 키는 서비스 프린시펄(예: <code>sns.amazonaws.com</code>)이며, 값은 메시지 발행 또는 수신이 허용되는 리소스 ARN을 정의합니다.</td>
-        <td>map(object)</td>
+        <td>Dead Letter Queue 액세스 구성입니다. 프로듀서 및/또는 컨슈머 액세스를 AWS 서비스 프린시펄과 리소스 ARN 쌍의 이름 있는 맵으로 정의합니다.</td>
+        <td>object</td>
         <td>null</td>
         <td>no</td>
         <td><pre>{
-  "sns.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    ]
+  producer = {
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
+  }
+  consumer = {
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }</pre></td>
     </tr>
@@ -768,20 +745,24 @@ SQS는 두 가지 서버 측 암호화(SSE) 방식을 지원합니다.
 
 ```hcl
 sqs_access_services = {
-  # SNS가 메시지 발행 가능
-  "sns.amazonaws.com" = {
-    producer_arns = ["arn:aws:sns:ap-northeast-2:111122223333:my-topic"]
-  }
-  # EventBridge가 메시지 발행 가능
-  "events.amazonaws.com" = {
-    producer_arns = ["arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"]
+  producer = {
+    # SNS가 메시지 발행 가능
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
+    # EventBridge가 메시지 발행 가능
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }
 ```
 
 생성되는 정책 액션:
-- **Producer** (`producer_arns`): `sqs:SendMessage`
-- **Consumer** (`consumer_arns`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
+- **Producer** (`producer`): `sqs:SendMessage`
+- **Consumer** (`consumer`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
 
 # 라이선스
 

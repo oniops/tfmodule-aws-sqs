@@ -1,7 +1,7 @@
 locals {
   sqs_name = var.sqs_fullname != null ? var.sqs_fullname : (var.fifo_queue ? "${var.sqs_name}-sqs.fifo" : "${var.sqs_name}-sqs")
   dlq_name = var.dlq_fullname != null ? var.dlq_fullname : (var.fifo_queue ? "${var.sqs_name}-dlq-sqs.fifo" : "${var.sqs_name}-dlq-sqs")
-  tags     = merge(var.context.tags, var.additional_tags)
+  tags     = merge(var.context.tags, var.tags)
 }
 
 resource "aws_sqs_queue" "this" {

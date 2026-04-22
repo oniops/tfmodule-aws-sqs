@@ -3,14 +3,14 @@ variable "context" {
   type        = any
 }
 
-variable "additional_tags" {
-  type    = map(string)
-  default = {}
+variable "tags" {
+  type        = map(string)
+  default     = {}
   description = <<EOF
-Specify additional tags for resources created in this module.
+Specify tags for resources created in this module.
 
 Example)
-  additional_tags = {
+  tags = {
     "ExpirationDate"  = "20260102"
     "PurposeOfUse"    = "PoC"
   }
@@ -140,22 +140,33 @@ variable "create_queue_policy" {
 }
 
 variable "sqs_access_services" {
-  type = map(object({
-    producer_arns = optional(list(string), [])
-    consumer_arns = optional(list(string), [])
-  }))
+  type = object({
+    producer = optional(map(object({
+      service = string
+      arn     = string
+    })))
+    consumer = optional(map(object({
+      service = string
+      arn     = string
+    })))
+  })
   default     = null
   description = <<EOF
-Map of AWS service principals to SQS access configuration. Key is service principal (e.g. 'sns.amazonaws.com'), value defines which resource ARNs are allowed to produce or consume.
+SQS queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.
 
 Example)
   sqs_access_services = {
-    "sns.amazonaws.com" = {
-      producer_arns = ["arn:aws:sns:ap-northeast-2:123456789012:apple-topic"]
+    producer = {
+      "apple-topic" = {
+        service = "sns.amazonaws.com"
+        arn     = "arn:aws:sns:ap-northeast-2:123456789012:apple-topic"
+      }
     }
-    "events.amazonaws.com" = {
-      producer_arns = ["arn:aws:events:ap-northeast-2:123456789012:rule/banana-rule"]
-      consumer_arns = ["arn:aws:events:ap-northeast-2:123456789012:rule/other-rule"]
+    consumer = {
+      "banana-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:123456789012:rule/banana-rule"
+      }
     }
   }
 EOF
@@ -211,7 +222,7 @@ variable "dlq_fullname" {
 }
 
 variable "dlq_delay_seconds" {
- description = "The time in seconds that the delivery of all messages in the dead letter queue will be delayed. An integer from 0 to 900 (15 minutes). If not set, inherits from `delay_seconds`"
+  description = "The time in seconds that the delivery of all messages in the dead letter queue will be delayed. An integer from 0 to 900 (15 minutes). If not set, inherits from `delay_seconds`"
   type        = number
   default     = null
 }
@@ -294,7 +305,7 @@ EOF
 # Dead Letter Queue - Policy
 ################################################################################
 
-variable "create_dlq_queue_policy" {
+variable "create_dlq_policy" {
   description = "Determines whether to create an access policy for the dead letter queue"
   type        = bool
   default     = false
@@ -328,22 +339,33 @@ EOF
 }
 
 variable "dlq_access_services" {
-  type = map(object({
-    producer_arns = optional(list(string), [])
-    consumer_arns = optional(list(string), [])
-  }))
+  type = object({
+    producer = optional(map(object({
+      service = string
+      arn     = string
+    })))
+    consumer = optional(map(object({
+      service = string
+      arn     = string
+    })))
+  })
   default     = null
   description = <<EOF
-Map of AWS service principals to dead-letter SQS access configuration. Key is service principal (e.g. 'sns.amazonaws.com'), value defines which resource ARNs are allowed to produce or consume.
+Dead Letter Queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.
 
 Example)
   dlq_access_services = {
-    "sns.amazonaws.com" = {
-      producer_arns = ["arn:aws:sns:ap-northeast-2:123456789012:apple-topic"]
+    producer = {
+      "my-topic" = {
+        service = "sns.amazonaws.com"
+        arn     = "arn:aws:sns:ap-northeast-2:123456789012:my-topic"
+      }
     }
-    "events.amazonaws.com" = {
-      producer_arns = ["arn:aws:events:ap-northeast-2:123456789012:rule/banana-rule"]
-      consumer_arns = ["arn:aws:events:ap-northeast-2:123456789012:rule/other-rule"]
+    consumer = {
+      "my-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:123456789012:rule/my-rule"
+      }
     }
   }
 EOF

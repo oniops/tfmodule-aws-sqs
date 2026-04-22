@@ -22,20 +22,6 @@ For more information about Context, see the [tfmodule-context](https://github.co
 This chapter explains how to create a basic standard SQS queue.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source                     = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context                    = module.ctx.context
@@ -56,36 +42,63 @@ output "queue_arn" {
 
 <br>
 
-### Example 2 : Standard SQS Queue with SNS / EventBridge Integration
+### Example 2 : Standard SQS Queue with Cross-Account IAM Role Access
+
+This chapter explains how to allow an IAM Identity (Role) from another AWS account (`111122223333`) to access the queue using `sqs_policy`.
+
+```hcl
+module "sqs" {
+  source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
+  context  = module.ctx.context
+  sqs_name = "my-queue"
+
+  sqs_policy = [
+    {
+      Sid       = "AllowCrossAccountRoleAccess"
+      Effect    = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::111122223333:role/my-cross-account-role"
+      }
+      Action = [
+        "sqs:SendMessage",
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ]
+      Resource = "arn:aws:sqs:ap-northeast-2:444455556666:my-queue-sqs"
+    }
+  ]
+}
+```
+
+<br>
+
+### Example 3 : Standard SQS Queue with SNS / EventBridge Integration
 
 This chapter explains how to allow AWS services (e.g. SNS, EventBridge) to produce or consume messages from the queue using `sqs_access_services`.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
   sqs_name = "my-queue"
 
   sqs_access_services = {
-    "sns.amazonaws.com" = {
-      producer_arns = ["arn:aws:sns:ap-northeast-2:111122223333:my-topic"]
+    producer = {
+      "my-topic" = {
+        service = "sns.amazonaws.com"
+        arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+      }
+      "my-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+      }
     }
-    "events.amazonaws.com" = {
-      producer_arns = ["arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"]
+    consumer = {
+      "my-consumer-rule" = {
+        service = "events.amazonaws.com"
+        arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-consumer-rule"
+      }
     }
   }
 }
@@ -93,25 +106,11 @@ module "sqs" {
 
 <br>
 
-### Example 3 : Standard SQS Queue with Dead Letter Queue (DLQ)
+### Example 4 : Standard SQS Queue with Dead Letter Queue (DLQ)
 
 This chapter explains how to create a standard SQS queue with an automatically provisioned Dead Letter Queue. Messages that fail processing are moved to the DLQ after exceeding the `maxReceiveCount` threshold.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -121,7 +120,7 @@ module "sqs" {
   create_dlq                    = true
   dlq_message_retention_seconds = 1209600  # 14 days
 
-  additional_tags = {
+  tags = {
     Service = "my-service"
   }
 }
@@ -137,25 +136,11 @@ output "dlq_url" {
 
 <br>
 
-### Example 4 : FIFO Queue
+### Example 5 : FIFO Queue
 
 This chapter explains how to create a FIFO (First-In-First-Out) queue that guarantees message ordering and exactly-once processing within a message group.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -182,25 +167,11 @@ module "sqs" {
 
 <br>
 
-### Example 5 : Queue with KMS Encryption (SSE-KMS)
+### Example 6 : Queue with KMS Encryption (SSE-KMS)
 
 This chapter explains how to encrypt queue messages using a customer-managed KMS key instead of the default SQS-managed SSE.
 
 ```hcl
-module "ctx" {
-  source = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.5"
-  context = {
-    project     = "demo"
-    region      = "ap-northeast-2"
-    environment = "Development"
-    department  = "DevOps"
-    owner       = "my_devops_team@example.com"
-    customer    = "Example Customer"
-    domain      = "example.com"
-    pri_domain  = "example.internal"
-  }
-}
-
 module "sqs" {
   source   = "git::https://github.com/oniops/tfmodule-aws-sqs.git?ref=v1.0.0"
   context  = module.ctx.context
@@ -251,8 +222,8 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
 }</pre></td>
     </tr>
     <tr>
-        <td>additional_tags</td>
-        <td>Specify additional tags for resources created in this module.</td>
+        <td>tags</td>
+        <td>Specify tags for resources created in this module.</td>
         <td>map(string)</td>
         <td>{}</td>
         <td>no</td>
@@ -484,23 +455,22 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
     </tr>
     <tr>
         <td>sqs_access_services</td>
-        <td>Map of AWS service principals to SQS access configuration. Key is service principal (e.g. <code>sns.amazonaws.com</code>), value defines which resource ARNs are allowed to produce or consume.</td>
-        <td>map(object)</td>
+        <td>SQS queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.</td>
+        <td>object</td>
         <td>null</td>
         <td>no</td>
         <td><pre>{
-  "sns.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    ]
+  producer = {
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
   }
-  "events.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
-    ]
-    consumer_arns = [
-      "arn:aws:events:ap-northeast-2:111122223333:rule/other-rule"
-    ]
+  consumer = {
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }</pre></td>
     </tr>
@@ -644,7 +614,7 @@ Restrict to a specific source queue ARN:
 }</pre></td>
     </tr>
     <tr>
-        <td>create_dlq_queue_policy</td>
+        <td>create_dlq_policy</td>
         <td>Determines whether to create an access policy for the dead letter queue.</td>
         <td>bool</td>
         <td>false</td>
@@ -669,15 +639,22 @@ Restrict to a specific source queue ARN:
     </tr>
     <tr>
         <td>dlq_access_services</td>
-        <td>Map of AWS service principals to dead-letter SQS access configuration. Key is service principal (e.g. <code>sns.amazonaws.com</code>), value defines which resource ARNs are allowed to produce or consume.</td>
-        <td>map(object)</td>
+        <td>Dead Letter Queue access configuration. Defines producer and/or consumer access as named maps of AWS service principal and resource ARN pairs.</td>
+        <td>object</td>
         <td>null</td>
         <td>no</td>
         <td><pre>{
-  "sns.amazonaws.com" = {
-    producer_arns = [
-      "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
-    ]
+  producer = {
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
+  }
+  consumer = {
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }</pre></td>
     </tr>
@@ -768,20 +745,24 @@ Using the `sqs_access_services` variable automatically generates IAM policies th
 
 ```hcl
 sqs_access_services = {
-  # Allows SNS to produce messages
-  "sns.amazonaws.com" = {
-    producer_arns = ["arn:aws:sns:ap-northeast-2:111122223333:my-topic"]
-  }
-  # Allows EventBridge to produce messages
-  "events.amazonaws.com" = {
-    producer_arns = ["arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"]
+  producer = {
+    # Allows SNS to produce messages
+    "my-topic" = {
+      service = "sns.amazonaws.com"
+      arn     = "arn:aws:sns:ap-northeast-2:111122223333:my-topic"
+    }
+    # Allows EventBridge to produce messages
+    "my-rule" = {
+      service = "events.amazonaws.com"
+      arn     = "arn:aws:events:ap-northeast-2:111122223333:rule/my-rule"
+    }
   }
 }
 ```
 
 Generated policy actions:
-- **Producer** (`producer_arns`): `sqs:SendMessage`
-- **Consumer** (`consumer_arns`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
+- **Producer** (`producer`): `sqs:SendMessage`
+- **Consumer** (`consumer`): `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes`, `sqs:ChangeMessageVisibility`
 
 # LICENSE
 
