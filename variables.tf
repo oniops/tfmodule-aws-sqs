@@ -248,24 +248,24 @@ variable "create_dlq_redrive_allow_policy" {
   default     = true
 }
 
-variable "dlq_redrive_allow_policy" {
+variable "redrive_allow_policy" {
   description = <<EOF
-Additional attributes to merge into the Dead Letter Queue redrive allow policy. By default, `redrivePermission` is set to `byQueue` and `sourceQueueArns` is set to the main queue ARN. Use this variable to override those defaults.
+The redrive allow policy for the Dead Letter Queue. Defines which source queues are permitted to use this queue as a dead letter queue.
 See [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) for details.
 
 Example) Allow any source queue to use this DLQ:
-  dlq_redrive_allow_policy = {
+  redrive_allow_policy = {
     redrivePermission = "allowAll"
   }
 
 Example) Restrict to a specific source queue ARN:
-  dlq_redrive_allow_policy = {
+  redrive_allow_policy = {
     redrivePermission = "byQueue"
     sourceQueueArns   = ["arn:aws:sqs:ap-northeast-2:123456789012:my-source-queue"]
   }
 EOF
-  type        = any
-  default     = null
+  type    = any
+  default = null
 }
 
 ################################################################################
