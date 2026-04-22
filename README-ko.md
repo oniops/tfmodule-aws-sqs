@@ -587,8 +587,8 @@ tfmodule-aws-sqs에서 사용되는 입력/출력 변수를 설명합니다.
         <td>false</td>
     </tr>
     <tr>
-        <td>dlq_redrive_allow_policy</td>
-        <td>Dead Letter Queue Redrive Allow Policy에 병합할 추가 속성입니다. 기본적으로 <code>redrivePermission</code>은 <code>byQueue</code>로, <code>sourceQueueArns</code>는 메인 큐 ARN으로 설정됩니다. 이 변수를 사용하여 기본값을 덮어쓸 수 있습니다.</td>
+        <td>redrive_allow_policy</td>
+        <td>Dead Letter Queue의 Redrive Allow Policy입니다. 이 큐를 Dead Letter Queue로 사용할 수 있는 소스 큐를 정의합니다.</td>
         <td>any</td>
         <td>null</td>
         <td>no</td>

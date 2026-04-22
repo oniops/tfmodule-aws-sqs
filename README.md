@@ -587,8 +587,8 @@ This chapter describes Input/Output variables used in tfmodule-aws-sqs.
         <td>false</td>
     </tr>
     <tr>
-        <td>dlq_redrive_allow_policy</td>
-        <td>Additional attributes to merge into the Dead Letter Queue redrive allow policy. By default, <code>redrivePermission</code> is set to <code>byQueue</code> and <code>sourceQueueArns</code> is set to the main queue ARN. Use this variable to override those defaults.</td>
+        <td>redrive_allow_policy</td>
+        <td>The redrive allow policy for the Dead Letter Queue. Defines which source queues are permitted to use this queue as a dead letter queue.</td>
         <td>any</td>
         <td>null</td>
         <td>no</td>
